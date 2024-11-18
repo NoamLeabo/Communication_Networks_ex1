@@ -50,6 +50,40 @@ while True:
         # we send back the encoded data to the addr of the sender
         s.sendto(data.encode('utf-8'), addr)
 
+    was_found = True
+    # we go over each line in the file
+    for saved in cache:
+        # if we have not found yet
+        if not was_found:
+            # we check for substring
+            if saved and saved.split(',')[0] in url:
+                # we send the whole line that fit
+                next_one = saved.strip()
+                # update the var accordingly
+                was_found = True
+    
+    if was_found:
+        f_data = next_one
+        # if the line does not end with 'A' we play "Havila O've'ret" until we get the final result
+        while f_data[-1] == 'S':
+            # we store in the cache the data
+            cache.append((f_data, time.time()))
+            # split the f_data to extract the next IP and port
+            parts = f_data.split(',')
+            next_ip = parts[1].split(':')[0]
+            next_port = int(parts[1].split(':')[1])
+            # send the next request to the next server
+            f_socket.sendto(url.encode('utf-8'), (next_ip, next_port))
+            # wait for the next answer
+            next_data, next_addr = f_socket.recvfrom(1024)
+            # decode the next answered line
+            f_data = next_data.decode('utf-8')
+        
+        # we add the new data for the cache with the curr time
+        cache.append((f_data, time.time()))
+        # we send the info back
+        s.sendto(f_data.encode('utf-8'), addr)
+        continue
 
     # if url is not in cache we ask our father server for the req line
     else:
@@ -72,6 +106,8 @@ while True:
 
         # if the line does not end with 'A' we play "Havila O've'ret" until we get the final result
         while f_data[-1] == 'S':
+            # we store in the cache the data
+            cache.append((f_data, time.time()))
             # split the f_data to extract the next IP and port
             parts = f_data.split(',')
             next_ip = parts[1].split(':')[0]
