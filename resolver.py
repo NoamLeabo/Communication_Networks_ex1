@@ -16,7 +16,7 @@ time_last_in_cache = float(x)
 # we create a socket for the resolver server
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 # we bind it with its port
-s.bind(('', 7979))
+s.bind(('', 5656))
 # we initiate the cache
 cache = []
 
@@ -25,7 +25,7 @@ while True:
     # wait for a msg (req url, addr of the sender)
     url, addr = s.recvfrom(1024)
     # before handeling the msg we clean the cache
-    curr_time = time.time()
+    curr_time = time.time() # TODO: check whether this is in secs
     for tuple in cache:
         old_to_check = float(tuple[1])
         if (curr_time - old_to_check > time_last_in_cache):
@@ -58,7 +58,7 @@ while True:
         # if we have not found yet
         if not was_found:
             # we check for substring
-            if saved[0] and saved[0].split(',')[0] in url:
+            if saved[0] and url.endswith(saved[0].split(',')[0]):
                 # we send the whole line that fit
                 next_one = saved[0].strip()
                 # update the var accordingly

@@ -32,8 +32,9 @@ while True:
     for line in zone_file.split('\n'):
         # if we have not found yet
         if not was_found:
+            suffix = line.split(',')[0]
             # we check for substring
-            if line and line.split(',')[0] in url:
+            if line and  url.split(',')[0].endswith(suffix):
                 # we send the whole line that fit
                 s.sendto(line.strip().encode('utf-8'), addr)
                 # update the var accordingly

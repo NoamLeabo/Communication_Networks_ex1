@@ -11,5 +11,5 @@ s.bind(('', 888))
 while True:
     # receive a req
     url, addr = s.recvfrom(1024)
-    to_send = "dont have :)"
+    to_send = "www.co.il,127.0.0.1:654,A"
     s.sendto(to_send.encode('utf-8'), addr)
