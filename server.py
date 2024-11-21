@@ -1,11 +1,17 @@
 import socket
+import sys
 
+
+# the server's port
+myPort = int(sys.argv[1])
+# the server's zone file
+myFile = sys.argv[2]
 # we aquire the urls in the local file 
-zone_file = open('zone.txt', 'r').read()
+zone_file = open(myFile, 'r').read()
 # we create the server's socket
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 # we bind it with a port
-s.bind(('', 12345))
+s.bind(('', myPort))
 
 # the server loop
 while True:
@@ -26,7 +32,7 @@ while True:
         s.sendto(line.encode('utf-8'), addr)
         continue
     
-    # an var that indicates if we found a substring of the req url in the file 'zone'
+    # a var that indicates if we found a substring of the req url in the file 'zone'
     was_found = False
     # we go over each line in the file
     for line in zone_file.split('\n'):
@@ -34,7 +40,7 @@ while True:
         if not was_found:
             suffix = line.split(',')[0]
             # we check for substring
-            if line and  url.split(',')[0].endswith(suffix):
+            if line and url.split(',')[0].endswith(suffix) and line[-1] == "S":
                 # we send the whole line that fit
                 s.sendto(line.strip().encode('utf-8'), addr)
                 # update the var accordingly
@@ -42,5 +48,5 @@ while True:
 
     # if we didn't find any substring we return "non-existent response" 
     if not was_found:
-        res = "non-existent response"
+        res = "non-existent domain"
         s.sendto(res.encode('utf-8'), addr) 

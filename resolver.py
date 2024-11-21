@@ -16,7 +16,7 @@ time_last_in_cache = float(x)
 # we create a socket for the resolver server
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 # we bind it with its port
-s.bind(('', 5656))
+s.bind(('', myPort))
 # we initiate the cache
 cache = []
 
@@ -65,7 +65,7 @@ while True:
                 was_found = True
     
     # if some of the url is in cache we need to find the rest of it
-    if was_found:
+    if was_found and next_one[-1] == "S":
         # we create a socket to contact with the "father" (next_one in that case) 
         f_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         # we try to get the rest from the next_one server
