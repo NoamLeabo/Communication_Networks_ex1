@@ -12,8 +12,11 @@ def run_command(command, input_data=None):
             stderr=subprocess.PIPE,
             text=True
         )
-        stdout, stderr = process.communicate(input=input_data)
+        stdout, stderr = process.communicate(input=input_data, timeout=5)  # Timeout for hanging processes
         return stdout.strip(), stderr.strip(), process.returncode
+    except subprocess.TimeoutExpired:
+        process.kill()
+        return "", "Process timed out", 1
     except Exception as e:
         return "", str(e), 1
 
@@ -39,17 +42,32 @@ def run_client(server_ip, server_port, query):
     )
     return stdout, stderr
 
+# Cleanup helper function
+def cleanup_files(files):
+    for file in files:
+        try:
+            os.remove(file)
+        except FileNotFoundError:
+            print(f"File {file} not found, skipping deletion.")
+
 # Test cases
 def run_tests():
     # Zone files setup
+    zone_files = ["zone.txt", "zone2.txt", "zone3.txt", "zone4.txt"]
     with open("zone.txt", "w") as f:
         f.write("biu.ac.il,1.2.3.4,A\nco.il,127.0.0.1:777,NS\nexample.com,1.2.3.7,A\n")
     with open("zone2.txt", "w") as f:
-        f.write("www.google.co.il,1.2.3.8,A\nmail.google.co.il,1.2.3.9,A\n")
+        f.write("www.google.co.il,1.2.3.8,A\nmail.google.co.il,1.2.3.9,A\nbiu.google.co.il,127.0.0.1:888,NS\n")
+    with open("zone3.txt", "w") as f:
+        f.write("top.biu.google.co.il,1.2.3.10,A\nthe.top.biu.google.co.il,127.0.0.1:999,NS\n")
+    with open("zone4.txt", "w") as f:
+        f.write("al.the.top.biu.google.co.il,1.2.3.12,A\n")
     
     # Start servers
     server1 = start_server(55555, "zone.txt")
     server2 = start_server(777, "zone2.txt")
+    server3 = start_server(888, "zone3.txt")
+    server4 = start_server(999, "zone4.txt")
     time.sleep(1)  # Wait for servers to start
 
     # Start resolver
@@ -58,39 +76,112 @@ def run_tests():
 
     try:
         # Test Case 1: Basic Server Response
-        output, _ = run_client("127.0.0.1", 55555, "biu.ac.il")
+        output, stderr = run_client("127.0.0.1", 55555, "biu.ac.il")
+        if output != "1.2.3.4":
+            print(f"Test Case 1 Failed. Output: {output}, Stderr: {stderr}")
+        else:
+            print("passed 1")
         assert output == "1.2.3.4", f"Test Case 1 Failed: {output}"
 
         # Test Case 2: Resolver with Caching
-        output, _ = run_client("127.0.0.1", 12345, "example.com")
+        output, stderr = run_client("127.0.0.1", 12345, "example.com")
+        if output != "1.2.3.7":
+            print(f"Test Case 2 Failed. Output: {output}, Stderr: {stderr}")
+        else:
+            print("passed 2")
         assert output == "1.2.3.7", f"Test Case 2 Failed: {output}"
 
         # Test Case 3: Non-existent Domain
-        output, _ = run_client("127.0.0.1", 12345, "unknown-domain.com")
+        output, stderr = run_client("127.0.0.1", 12345, "unknown-domain.com")
+        if output != "non-existent domain":
+            print(f"Test Case 3 Failed. Output: {output}, Stderr: {stderr}")
+        else:
+            print("passed 3")
         assert output == "non-existent domain", f"Test Case 3 Failed: {output}"
 
-        # Test Case 4: Chain Communication
-        output, _ = run_client("127.0.0.1", 12345, "mail.google.co.il")
+        # Test Case 4: Chain Communication (Server 2 -> Server 3)
+        output, stderr = run_client("127.0.0.1", 12345, "mail.google.co.il")
+        if output != "1.2.3.9":
+            print(f"Test Case 4 Failed. Output: {output}, Stderr: {stderr}")
+        else:
+            print("passed 4")
         assert output == "1.2.3.9", f"Test Case 4 Failed: {output}"
 
-        # Test Case 5: Cache Expiry
-        time.sleep(10)  # Wait for cache to expire
-        output, _ = run_client("127.0.0.1", 12345, "example.com")
-        assert output == "1.2.3.7", f"Test Case 5 Failed: {output}"
+        # Test Case 5: Nested Chain Communication
+        output, stderr = run_client("127.0.0.1", 12345, "top.biu.google.co.il")
+        if output != "1.2.3.10":
+            print(f"Test Case 5 Failed. Output: {output}, Stderr: {stderr}")
+        else:
+            print("passed 5")
+        assert output == "1.2.3.10", f"Test Case 5 Failed: {output}"
 
-        # Test Case 6: Invalid Input
-        output, _ = run_client("127.0.0.1", 12345, "example@@@.com")
-        assert output == "non-existent domain", f"Test Case 6 Failed: {output}"
+        # Test Case 6: Deep Chain Communication
+        output, stderr = run_client("127.0.0.1", 12345, "al.the.top.biu.google.co.il")
+        if output != "1.2.3.12":
+            print(f"Test Case 6 Failed. Output: {output}, Stderr: {stderr}")
+        else:
+            print("passed 6")
+        assert output == "1.2.3.12", f"Test Case 6 Failed: {output}"
+
+        # Test Case 7: Invalid Input
+        output, stderr = run_client("127.0.0.1", 12345, "invalid@domain.com")
+        if output != "non-existent domain":
+            print(f"Test Case 7 Failed. Output: {output}, Stderr: {stderr}")
+        else:
+            print("passed 7")
+        assert output == "non-existent domain", f"Test Case 7 Failed: {output}"
+
+        # Test Case 8: Complex Domain (Edge Case)
+        output, stderr = run_client("127.0.0.1", 12345, "www.google.co.il")
+        if output != "1.2.3.8":
+            print(f"Test Case 8 Failed. Output: {output}, Stderr: {stderr}")
+        else:
+            print("passed 8")
+        assert output == "1.2.3.8", f"Test Case 8 Failed: {output}"
+
+        # Cache Tests
+        print("\nRunning Cache Tests...")
+
+        # Preload cache with multiple queries
+        run_client("127.0.0.1", 12345, "mail.google.co.il")
+        run_client("127.0.0.1", 12345, "top.biu.google.co.il")
+
+        # Turn off some servers
+        server2.terminate()
+        server3.terminate()
+        server2.wait(timeout=5)
+        server3.wait(timeout=5)
+        print("<--- Servers 2 and 3 are now TERMINATED --->\n")
+
+        # Test Case 9: Cached Response for mail.google.co.il
+        output, stderr = run_client("127.0.0.1", 12345, "mail.google.co.il")
+        if output != "1.2.3.9":
+            print(f"Test Case 9 Failed. Output: {output}, Stderr: {stderr}")
+        else:
+            print("passed 9")
+        assert output == "1.2.3.9", f"Test Case 9 Failed: {output}"
+
+        # Test Case 10: Cached Response for top.biu.google.co.il
+        output, stderr = run_client("127.0.0.1", 12345, "top.biu.google.co.il")
+        if output != "1.2.3.10":
+            print(f"Test Case 10 Failed. Output: {output}, Stderr: {stderr}")
+        else:
+            print("passed 10")
+        assert output == "1.2.3.10", f"Test Case 10 Failed: {output}"
 
         print("All tests passed!")
     finally:
-        # Clean up processes
-        server1.terminate()
-        server2.terminate()
-        resolver.terminate()
-        server1.wait()
-        server2.wait()
-        resolver.wait()
+        # Clean up processes with timeout handling
+        for process, name in [(server1, "Server 1"), (server4, "Server 4"), (resolver, "Resolver")]:
+            process.terminate()
+            try:
+                process.wait(timeout=10)
+            except subprocess.TimeoutExpired:
+                print(f"{name} did not terminate in time and was killed.")
+                process.kill()
+
+        # Cleanup zone files
+        cleanup_files(zone_files)
 
 # Run tests
 run_tests()
