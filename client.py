@@ -13,7 +13,7 @@ s = socket(AF_INET, SOCK_DGRAM)
 # the client loop
 while True:
     # the checked addres
-    req = input()
+    req = sys.stdin.readline().strip()
     # send a url req to the server
     s.sendto(f"{req}".encode('utf-8'), (serverIP, serverPort))
 
@@ -25,8 +25,12 @@ while True:
         # we print only the IP
         print(data.split(',')[1])
     else:
-        # print the res
-        print(data)
+        # in the first case the info was retrieved from the cache so we remove the url itself
+        if ',' in data:
+            print(data.split(',')[1])
+        # we simply print the error msg
+        else: 
+            print(data)
 
 # close the socket
 s.close()

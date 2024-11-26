@@ -11,8 +11,8 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "args": [
-                "777",
-                "zone2.txt"
+                "127.0.0.1",
+                "12345"
             ]
         }
     ]

@@ -1,6 +1,7 @@
 import subprocess
 import time
 import os
+import random
 
 # Helper function to run a command and capture its output
 def run_command(command, input_data=None):
@@ -52,31 +53,36 @@ def cleanup_files(files):
 
 # Test cases
 def run_tests():
+    rand_sesolver_port = 12345
+    rand_server_port1 = 54321
+    rand_server_port2 = 54354
+    rand_server_port3 = 25453
+    rand_server_port4 = 15432
     # Zone files setup
     zone_files = ["zone.txt", "zone2.txt", "zone3.txt", "zone4.txt"]
     with open("zone.txt", "w") as f:
-        f.write("biu.ac.il,1.2.3.4,A\nco.il,127.0.0.1:777,NS\nexample.com,1.2.3.7,A\n")
+        f.write(f"biu.ac.il,1.2.3.4,A\nco.il,127.0.0.1:{rand_server_port2},NS\nexample.com,1.2.3.7,A\n")
     with open("zone2.txt", "w") as f:
-        f.write("www.google.co.il,1.2.3.8,A\nmail.google.co.il,1.2.3.9,A\nbiu.google.co.il,127.0.0.1:888,NS\n")
+        f.write(f"www.google.co.il,1.2.3.8,A\nmail.google.co.il,1.2.3.9,A\nbiu.google.co.il,127.0.0.1:{rand_server_port3},NS\n")
     with open("zone3.txt", "w") as f:
-        f.write("top.biu.google.co.il,1.2.3.10,A\nthe.top.biu.google.co.il,127.0.0.1:999,NS\n")
+        f.write(f"top.biu.google.co.il,1.2.3.10,A\nthe.top.biu.google.co.il,127.0.0.1:{rand_server_port4},NS\n")
     with open("zone4.txt", "w") as f:
         f.write("al.the.top.biu.google.co.il,1.2.3.12,A\n")
-    
+
     # Start servers
-    server1 = start_server(55555, "zone.txt")
-    server2 = start_server(777, "zone2.txt")
-    server3 = start_server(888, "zone3.txt")
-    server4 = start_server(999, "zone4.txt")
+    server1 = start_server(rand_server_port1, "zone.txt")
+    server2 = start_server(rand_server_port2, "zone2.txt")
+    server3 = start_server(rand_server_port3, "zone3.txt")
+    server4 = start_server(rand_server_port4, "zone4.txt")
     time.sleep(1)  # Wait for servers to start
 
     # Start resolver
-    resolver = start_resolver(12345, "127.0.0.1", 55555, 60)
+    resolver = start_resolver(rand_sesolver_port, "127.0.0.1", rand_server_port1, 60)
     time.sleep(1)  # Wait for resolver to start
 
     try:
         # Test Case 1: Basic Server Response
-        output, stderr = run_client("127.0.0.1", 55555, "biu.ac.il")
+        output, stderr = run_client("127.0.0.1", rand_sesolver_port, "biu.ac.il")
         if output != "1.2.3.4":
             print(f"Test Case 1 Failed. Output: {output}, Stderr: {stderr}")
         else:

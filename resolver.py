@@ -106,7 +106,9 @@ while True:
 
         # the final answer was that the result was not found no where    
         else:
-            # we send the info back without store in cache
+            # we add the new data for the cache with the curr time
+            cache.append((f"{url},{f_data}", time.time()))
+            # we send the info back
             s.sendto(f_data.encode('utf-8'), addr)
             continue
 
@@ -154,6 +156,8 @@ while True:
 
         # the final answer was that the result was not found no where    
         else:
-            # we send the info back without store in cache
+            # we add the new data for the cache with the curr time
+            cache.append((f"{url},{f_data}", time.time()))
+            # we send the info back
             s.sendto(f_data.encode('utf-8'), addr)
             continue
