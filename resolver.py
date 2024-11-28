@@ -34,7 +34,7 @@ while True:
     # we decode the req url
     url = url.decode('utf-8')
     # check if it's in the cache
-    test = any(url in item[0] for item in cache)
+    test = any(url == item[0].split(',')[0] for item in cache)
 
     # if url is in cache at full we send it back and we're done
     if test == True:

@@ -20,7 +20,12 @@ while True:
     # decode the req url
     url = url.decode('utf-8')
     # we check if we have a match
-    test = zone_file.find(url)
+    test = -1
+    for line in zone_file.split('\n'):
+        if line.startswith(url):
+            if line.split(',')[0] in url:
+                test = zone_file.find(line)
+                break
     # if the file contains the req url we shall return it
     if test != -1:
         # we extract the url from the file
@@ -40,7 +45,7 @@ while True:
         if not was_found:
             suffix = line.split(',')[0]
             # we check for substring
-            if line and url.split(',')[0].endswith(suffix) and line[-1] == "S":
+            if line and url.endswith(suffix) and line[-1] == "S":
                 # we send the whole line that fit
                 s.sendto(line.strip().encode('utf-8'), addr)
                 # update the var accordingly

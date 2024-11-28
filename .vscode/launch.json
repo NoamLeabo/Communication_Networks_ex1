@@ -11,8 +11,27 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "args": [
+                // // client
                 "127.0.0.1",
                 "12345"
+
+                // // resolver
+                // "12345",
+                // "127.0.0.1",
+                // "22220",
+                // "60"
+                // // server1
+                // "22220",
+                // "zone.txt"
+                // // server2
+                // "22221",
+                // "zone2.txt"
+                // server3
+                // "22222",
+                // "zone3.txt"
+                // // server4
+                // "22223",
+                // "zone4.txt"
             ]
         }
     ]
