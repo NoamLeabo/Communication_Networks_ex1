@@ -13,7 +13,7 @@ s = socket(AF_INET, SOCK_DGRAM)
 # the client loop
 while True:
     # the checked addres
-    req = sys.stdin.readline().strip()
+    req = input()
     # send a url req to the server
     s.sendto(f"{req}".encode('utf-8'), (serverIP, serverPort))
 

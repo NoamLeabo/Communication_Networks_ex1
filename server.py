@@ -22,10 +22,9 @@ while True:
     # we check if we have a match
     test = -1
     for line in zone_file.split('\n'):
-        if line.startswith(url):
-            if line.split(',')[0] in url:
-                test = zone_file.find(line)
-                break
+        if line.split(',')[0] == url:         
+            test = zone_file.find(line)
+            break
     # if the file contains the req url we shall return it
     if test != -1:
         # we extract the url from the file

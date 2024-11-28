@@ -32,7 +32,7 @@ while True:
             cache.remove(tuple)
 
     # we decode the req url
-    url = url.decode('utf-8')
+    url = url.decode('utf-8') # google.co.il,1.2.3.6,'A' || blaba.com,non-existent
     # check if it's in the cache
     test = any(url == item[0].split(',')[0] for item in cache)
 
