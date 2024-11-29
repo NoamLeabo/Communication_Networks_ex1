@@ -58,7 +58,7 @@ while True:
         # if we have not found yet
         if not was_found:
             # we check for substring
-            if saved[0] and url.endswith(saved[0].split(',')[0]):
+            if saved[0] and saved[0].startswith('.') and url.endswith(saved[0].split(',')[0]):
                 # we send the whole line that fit
                 next_one = saved[0].strip()
                 # update the var accordingly

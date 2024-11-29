@@ -54,19 +54,19 @@ def cleanup_files(files):
 
 # Test cases
 def run_tests():
-    rand_resolver_port = 55555
-    rand_server_port1 = 32322
-    rand_server_port2 = 45210
-    rand_server_port3 = 24386
-    rand_server_port4 = 62431
+    rand_resolver_port = random.randint(25000, 40444)
+    rand_server_port1 = rand_resolver_port + 10
+    rand_server_port2 = rand_resolver_port + 20
+    rand_server_port3 = rand_resolver_port + 30
+    rand_server_port4 = rand_resolver_port + 40
     # Zone files setup
     zone_files = ["zone1.txt", "zone2.txt", "zone3.txt", "zone4.txt"]
     with open("zone1.txt", "w") as f:
-        f.write(f"biu.ac.il,1.2.3.4,A\nco.il,127.0.0.1:{rand_server_port2},NS\nexample.com,1.2.3.7,A\n")
+        f.write(f"biu.ac.il,1.2.3.4,A\n.co.il,127.0.0.1:{rand_server_port2},NS\nexample.com,1.2.3.7,A\n")
     with open("zone2.txt", "w") as f:
-        f.write(f"www.google.co.il,1.2.3.8,A\nmail.google.co.il,1.2.3.9,A\nbiu.google.co.il,127.0.0.1:{rand_server_port3},NS\n")
+        f.write(f"www.google.co.il,1.2.3.8,A\nmail.google.co.il,1.2.3.9,A\n.biu.google.co.il,127.0.0.1:{rand_server_port3},NS\n")
     with open("zone3.txt", "w") as f:
-        f.write(f"top.biu.google.co.il,1.2.3.10,A\nthe.top.biu.google.co.il,127.0.0.1:{rand_server_port4},NS\n")
+        f.write(f"top.biu.google.co.il,1.2.3.10,A\n.the.top.biu.google.co.il,127.0.0.1:{rand_server_port4},NS\n")
     with open("zone4.txt", "w") as f:
         f.write("al.the.top.biu.google.co.il,1.2.3.12,A\n")
 
@@ -246,7 +246,7 @@ def run_tests():
         print("Test Case 13 Passed")
 
         # Test Case 14: Cache Expiry
-        print("Running Test Case 14: Cache Expiry")
+        print("Running Test Case 14: Cache Expiry (it takes about 60 sec...)")
         output, stderr = run_client("127.0.0.1", rand_resolver_port, "example.com")
         time.sleep(60)  # Wait for cache expiry
         output, stderr = run_client("127.0.0.1", rand_resolver_port, "example.com")
@@ -254,7 +254,7 @@ def run_tests():
         print("Test Case 14 Passed")
 
         # Test Case 15: Stress Test with Concurrent Clients
-        print("Running Test Case 15: Stress Test with Concurrent Clients")
+        print("Running Test Case 15: Stress Test with Concurrent Clients - tests case of large amount of req simultaneously")
         def stress_client(domain):
             return run_client("127.0.0.1", rand_resolver_port, domain)
 

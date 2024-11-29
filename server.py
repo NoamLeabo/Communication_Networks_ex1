@@ -44,7 +44,7 @@ while True:
         if not was_found:
             suffix = line.split(',')[0]
             # we check for substring
-            if line and url.endswith(suffix) and line[-1] == "S":
+            if line and line.startswith('.') and url.endswith(suffix) and line[-1] == "S":
                 # we send the whole line that fit
                 s.sendto(line.strip().encode('utf-8'), addr)
                 # update the var accordingly
